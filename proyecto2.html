@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda Wuamango</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #676b67; }
+    header { background-color: oklch(67.311% 0.16242 144.231); color: white; padding: 20px; }
+    nav { display: flex; gap: 20px; align-items: center; margin-top: 10px; }
+    nav a { color: rgb(255, 246, 246); text-decoration: none; font-weight: bold; cursor: pointer; }
+    .container { padding: 20px; }
+    .productos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+    .producto { background: rgb(182, 98, 98); border: 1px solid #ccc; border-radius: 10px; text-align: center; padding: 15px; box-shadow: 0 0 5px rgba(0,0,0,0.1); cursor: pointer; }
+    .producto img { max-width: 100%; border-radius: 5px; }
+    .detalle-producto img { max-width: 300px; border-radius: 10px; }
+    button { background-color: #4CAF50; color: white; padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background-color: #388E3C; }
+    footer { background-color: #333; color: white; text-align: center; padding: 10px; margin-top: 20px; }
+    .seccion { display: none; }
+    .seccion.activa { display: block; }
+    form input, form textarea, form select { width: 100%; margin: 5px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    form button { width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tienda Wuamango</h1>
+    <nav>
+      <a onclick="mostrarSeccion('productos')">Productos</a>
+      <a onclick="mostrarSeccion('carrito')">Carrito (<span id="contador-carrito">0</span>)</a>
+      <a onclick="mostrarSeccion('reseñas')">Reseñas</a>
+      <a onclick="mostrarSeccion('contacto')">Contacto</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section id="productos" class="seccion activa">
+      <h2>Productos</h2>
+      <div class="productos-grid" id="productos-container"></div>
+    </section>
+
+    <section id="detalle-producto" class="seccion">
+      <button onclick="mostrarSeccion('productos')">Volver</button>
+      <div class="detalle-producto" id="detalle-container"></div>
+    </section>
+
+    <section id="carrito" class="seccion">
+      <h2>Carrito</h2>
+      <ul id="lista-carrito"></ul>
+      <p>Total: $<span id="total-carrito">0</span></p>
+      <h3>Forma de pago</h3>
+      <select id="forma-pago">
+        <option value="">Seleccioná una opción</option>
+        <option value="efectivo">Efectivo</option>
+        <option value="tarjeta">Tarjeta</option>
+      </select>
+      <div id="datos-tarjeta" style="display:none;">
+        <input type="text" placeholder="Nombre en la tarjeta">
+        <input type="text" placeholder="Número de tarjeta">
+      </div>
+      <button onclick="finalizarCompra()">Finalizar Compra</button>
+      <div id="mensaje-compra"></div>
+    </section>
+
+    <section id="reseñas" class="seccion">
+      <h2>Reseñas</h2>
+      <form onsubmit="enviarReseña(event)">
+        <input type="text" id="nombre-reseña" placeholder="Tu nombre" required>
+        <textarea id="comentario-reseña" placeholder="Escribí tu reseña" required></textarea>
+        <button type="submit">Enviar reseña</button>
+      </form>
+      <div id="lista-reseñas"></div>
+    </section>
+
+    <section id="contacto" class="seccion">
+      <h2>Contacto</h2>
+      <form onsubmit="enviarContacto(event)">
+        <input type="tel" placeholder="Teléfono" required>
+        <input type="email" placeholder="Email" required>
+        <textarea placeholder="¿En qué podemos ayudarte?" required></textarea>
+        <button type="submit">Enviar</button>
+      </form>
+      <div id="mensaje-contacto"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Tienda Wuamango</p>
+  </footer>
+
+  <script>
+    const productos = [
+      { id: 1, nombre: "remera", precio: 2500, imagen: "img/1remera.jpg", descripcion: "Remera de algodón negra, cómoda y versátil."  },
+      { id: 2, nombre: "gorra", precio: 1800, imagen: "img/2gorra.jpg" ,descripcion: "Gorra ajustable de algodón negra." },
+      { id: 3, nombre: "pantalon", precio: 3200, imagen: "img/3pantalon.jpg" , descripcion: "Pantalón deportivo negro, ideal para entrenamiento y uso diario." },
+      { id: 4, nombre: "pelotac", precio: 3200, imagen: "img/4pelotac.jpg", descripcion: "Pelota de fútbol clásica blanca y negra, ideal para entrenamiento."  },
+      { id: 5, nombre: "pelota", precio: 3200, imagen: "img/5pelota.jpg" , descripcion: "pelota de futbol ideal niños." },
+      { id: 6, nombre: "medias", precio: 3200, imagen: "img/6medias.jpg" , descripcion: "Par de medias negras de algodón suave." },
+      { id: 7, nombre: "zapatillas", precio: 3200, imagen: "img/7zapatillas.jpg" , descripcion: "Zapatillas negras cómodas y con buen agarre." },
+      { id: 8, nombre: "soquetes", precio: 1800, imagen: "img/8soquetes.jpg" , descripcion: "soquetes comodos." },
+      { id: 9, nombre: "sandalias", precio: 1800, imagen: "img/9sandalias.jpg" , descripcion: "sandalia ideales para  el verano." },
+      { id: 10, nombre: "sabanas", precio: 1800, imagen: "img/10sabanas.jpg" , descripcion: "sabanas 1000 hilos, ideal para dormir fresco" },
+      { id: 11, nombre: "joggin", precio: 1800, imagen: "img/11joggin.jpg" , descripcion: "joggin ideal invierno, super comodos." },
+      { id: 12, nombre: "gorro", precio: 1800, imagen: "img/12gorro.jpg" , descripcion: "gorro ideal para invierno." },
+      { id: 13, nombre: "funda", precio: 1800, imagen: "img/13funda.jpg" , descripcion: "funda para celular universal." },
+      { id: 14, nombre: "almohada", precio: 1800, imagen: "img/14almohada.jpg" , descripcion: "almohada inteligente, mas que tu ex." },
+      { id: 15, nombre: "anteojos", precio: 1800, imagen: "img/15anteojos.jpg" , descripcion: "anteojos de sol ideal verano." },
+      { id: 16, nombre: "buzo", precio: 1800, imagen: "img/16buzo.jpg" , descripcion: "buzo canguro ideal invierno." },
+      { id: 17, nombre: "campera", precio: 1800, imagen: "img/17campera.jpg" , descripcion: "campera rompeviento." },
+      { id: 18, nombre: "casco", precio: 1800, imagen: "img/18casco.jpg" , descripcion: "casco talle M liviano." },
+      { id: 19, nombre: "cubiertos", precio: 1800, imagen: "img/19cubiertos.jpg" , descripcion: "juego de cubiertos de plata." },
+      { id: 20, nombre: "ojotas", precio: 1800, imagen: "img/20ojotas.jpg" , descripcion: "ojotas tipo havaianas." },
+      { id: 21, nombre: "repasador", precio: 1800, imagen: "img/21repasador.jpg" , descripcion: "repasadores distintos modelos." },
+      { id: 22, nombre: "toallon", precio: 1800, imagen: "img/22toallon.jpg" , descripcion: "toallon exelente calidad." },
+     
+    ];
+
+    let carrito = [];
+
+    const productosContainer = document.getElementById("productos-container");
+    const contadorCarrito = document.getElementById("contador-carrito");
+    const listaCarrito = document.getElementById("lista-carrito");
+    const totalCarrito = document.getElementById("total-carrito");
+    const detalleContainer = document.getElementById("detalle-container");
+
+    function renderProductos() {
+      productosContainer.innerHTML = "";
+      productos.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "producto";
+        div.innerHTML = `
+          <img src="${p.imagen}" alt="${p.nombre}" onclick="verDetalleProducto(${p.id})">
+          <h3>${p.nombre}</h3>
+          <p>$${p.precio}</p>
+          <button onclick="agregarAlCarrito(${p.id}); event.stopPropagation();">Agregar</button>
+        `;
+        productosContainer.appendChild(div);
+      });
+    }
+
+    function verDetalleProducto(id) {
+      const prod = productos.find(p => p.id === id);
+      detalleContainer.innerHTML = `
+        <h2>${prod.nombre}</h2>
+        <img src="${prod.imagen}" alt="${prod.nombre}">
+        <p>${prod.descripcion}</p>
+        <p><strong>Precio: $${prod.precio}</strong></p>
+        <button onclick="agregarAlCarrito(${prod.id})">Agregar al carrito</button>
+      `;
+      mostrarSeccion('detalle-producto');
+    }
+
+    function agregarAlCarrito(id) {
+      const prod = productos.find(p => p.id === id);
+      carrito.push(prod);
+      actualizarCarrito();
+    }
+
+    function actualizarCarrito() {
+      listaCarrito.innerHTML = "";
+      let total = 0;
+      carrito.forEach(p => {
+        const li = document.createElement("li");
+        li.textContent = `${p.nombre} - $${p.precio}`;
+        listaCarrito.appendChild(li);
+        total += p.precio;
+      });
+      contadorCarrito.textContent = carrito.length;
+      totalCarrito.textContent = total;
+    }
+
+    document.getElementById("forma-pago").addEventListener("change", function () {
+      document.getElementById("datos-tarjeta").style.display = this.value === "tarjeta" ? "block" : "none";
+    });
+
+    function finalizarCompra() {
+      const formaPago = document.getElementById("forma-pago").value;
+      const mensaje = document.getElementById("mensaje-compra");
+      if (!formaPago) {
+        mensaje.textContent = "Por favor, seleccioná una forma de pago.";
+        return;
+      }
+      mensaje.textContent = `¡Gracias por tu compra! Pagaste con ${formaPago}.`;
+      carrito = [];
+      actualizarCarrito();
+    }
+
+    function enviarReseña(e) {
+      e.preventDefault();
+      const nombre = document.getElementById("nombre-reseña").value;
+      const comentario = document.getElementById("comentario-reseña").value;
+      const div = document.createElement("div");
+      div.textContent = `⭐ ${comentario} - ${nombre}`;
+      document.getElementById("lista-reseñas").appendChild(div);
+      e.target.reset();
+    }
+
+    function enviarContacto(e) {
+      e.preventDefault();
+      document.getElementById("mensaje-contacto").textContent = "¡Gracias por contactarnos! Te responderemos pronto.";
+      e.target.reset();
+    }
+
+    function mostrarSeccion(id) {
+      document.querySelectorAll(".seccion").forEach(sec => sec.classList.remove("activa"));
+      document.getElementById(id).classList.add("activa");
+    }
+
+    renderProductos();
+    actualizarCarrito();
+  </script>
+</body>
+</html>

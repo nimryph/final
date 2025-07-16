@@ -1,4 +1,4 @@
-Tienda Wuamango es un proyecto de e-commerce desarrollado en HTML, CSS y JavaScript puro, que simula una tienda online con múltiples funcionalidades dinámicas pensadas para mejorar la experiencia del usuario.
+Tienda Wuamango es un proyecto de e-commerce desarrollado en HTML, CSS y JavaScript , que simula una tienda online con múltiples funcionalidades dinámicas pensadas para mejorar la experiencia del usuario.
  Funcionalidades principales:
 Catálogo de productos dinámico:
 Muestra una grilla de productos con imagen, nombre, precio y descripción. Cada producto puede ser visualizado en detalle y agregado al carrito.
